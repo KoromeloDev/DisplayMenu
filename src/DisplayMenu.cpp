@@ -184,9 +184,11 @@ void DisplayMenu::deleteItem(const uint8_t index)
   {
     if (_scrollItemCount > 0)
     {
-      --_scrollItemCount;
+      scrollUp();
+      return;
     }
-    else if (_selectedIndex > 0)
+
+    if (_selectedIndex > 0)
     {
       --_selectedIndex;
     }
