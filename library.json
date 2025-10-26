@@ -15,7 +15,7 @@
       "maintainer": true
     }
   ],
-  "license": "GPL-3.0 license",
+  "license": "GPL-3.0-or-later",
   "dependencies": {
     "gyverlibs/GyverOLED": "~1.6.4"
   },
