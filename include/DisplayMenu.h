@@ -46,6 +46,8 @@ public:
     addItem();
   }
 
+  void deleteItem(uint8_t index);
+
   void repaint() const;
 
 private:

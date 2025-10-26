@@ -20,7 +20,6 @@ void setup()
   menu.addItem("BOOL", &testBoolValue);
   menu.addItem("UINT", &testUintValue);
   menu.addItem("FLOAT", &testFloatValue);
-
   menu.addItem("UINT MIN", &testUintValueMin, 10);
   menu.addItem("UINT MIN MAX", &testUintValueMinMax, 11, 14);
   menu.addItem("Horizontal out------------>");
@@ -31,18 +30,23 @@ void setup()
   menu.selectNext();
   menu.selectNext();
   menu.selectNext();
+  menu.selectNext();
+  menu.selectNext();
+  menu.selectNext();
+  // menu.deleteItem(6);
+  // menu.deleteItem(5);
 
   while (!Serial) delay(10);
 }
 
 void loop()
 {
-  delay(500);
-
-  testFloatValue = 15.6f;
-  menu.repaint();
-  // menu.selectNext();
-  // menu.incrementValue();
+  delay(1000);
+  menu.deleteItem(0);
+  // testFloatValue = 15.6f;
+  // menu.repaint();
+  menu.selectNext();
+  menu.incrementValue();
   // menu.decrementValue();
   // menu.selectPrevious();
 }

@@ -94,6 +94,7 @@ void DisplayMenu::addItem(const String &text)
 
 void DisplayMenu::incrementValue() const
 {
+  if (_items.empty()) return;
   getSelectedItem().incrementValue();
   selectIndex();
   _oled->update();
@@ -101,6 +102,7 @@ void DisplayMenu::incrementValue() const
 
 void DisplayMenu::decrementValue() const
 {
+  if (_items.empty()) return;
   getSelectedItem().decrementValue();
   selectIndex();
   _oled->update();
@@ -173,11 +175,33 @@ void DisplayMenu::scrollDown()
   repaint();
 }
 
+void DisplayMenu::deleteItem(const uint8_t index)
+{
+  if (index >= _items.size()) return;
+  _items.erase(_items.begin() + index);
+
+  if (index == getSelectedIndex() || getSelectedIndex() >= _items.size())
+  {
+    if (_scrollItemCount > 0)
+    {
+      --_scrollItemCount;
+    }
+    else if (_selectedIndex > 0)
+    {
+      --_selectedIndex;
+    }
+  }
+
+  _oled->clear();
+  repaint();
+}
+
 void DisplayMenu::repaint() const
 {
-  for (uint8_t i = 0; i < 6; ++i)
+  const uint8_t sizeToPrint = _items.size() >= 6 ? 6 : _items.size();
+
+  for (uint8_t i = 0; i < sizeToPrint; ++i)
   {
-    if (i > _items.size() - 1) return;
     if (i == _selectedIndex) selectIndex();
     else unselectIndex(i);
   }
