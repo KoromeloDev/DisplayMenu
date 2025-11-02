@@ -2,46 +2,46 @@
 
 #define DECIMAL_PLACES 2
 
-MenuItem::MenuItem(String text) : _text(std::move(text))
+MenuItem::MenuItem(String text) : m_text(std::move(text))
 {
-  _value = nullopt;
-  _valueMin = nullopt;
-  _valueMax = nullopt;
+  m_value = nullopt;
+  m_valueMin = nullopt;
+  m_valueMax = nullopt;
 }
 
 String MenuItem::getText() const
 {
-  return _text;
+  return m_text;
 }
 
 bool MenuItem::hasValue() const
 {
-  return _value.has_value();
+  return m_value.has_value();
 }
 
 bool MenuItem::hasMin() const
 {
-  return _valueMin.has_value();
+  return m_valueMin.has_value();
 }
 
 bool MenuItem::hasMax() const
 {
-  return _valueMax.has_value();
+  return m_valueMax.has_value();
 }
 
 optional<MenuItem::ValuePtrType> MenuItem::getValue() const
 {
-  return _value;
+  return m_value;
 }
 
 optional<MenuItem::ValueType> MenuItem::getMin() const
 {
-  return _valueMin;
+  return m_valueMin;
 }
 
 optional<MenuItem::ValueType> MenuItem::getMax() const
 {
-  return _valueMax;
+  return m_valueMax;
 }
 
 void MenuItem::incrementValue()
@@ -66,7 +66,7 @@ String MenuItem::getValueAsString() const
     {
       return *arg ? "true" : "false";
     }
-    else if constexpr (is_same_v<T, float*> || is_same_v<T, double*>)
+    else if constexpr (is_floating_point_v<T*>)
     {
       return String(*arg, DECIMAL_PLACES);
     }
@@ -74,7 +74,7 @@ String MenuItem::getValueAsString() const
     {
       return String(*arg); // For integer types
     }
-  }, _value.value());
+  }, m_value.value());
 }
 
 void MenuItem::trimValue() const
@@ -86,7 +86,7 @@ void MenuItem::trimValue() const
       if (*ptr < minVal) *ptr = minVal;
     };
 
-    visit(trimMin, _value.value(), _valueMin.value());
+    visit(trimMin, m_value.value(), m_valueMin.value());
   }
 
   if (hasMax())
@@ -96,7 +96,7 @@ void MenuItem::trimValue() const
       if (*ptr > maxVal) *ptr = maxVal;
     };
 
-    visit(trimMin, _value.value(), _valueMax.value());
+    visit(trimMin, m_value.value(), m_valueMax.value());
   }
 }
 
@@ -108,15 +108,15 @@ void MenuItem::modifyValue(bool increment)
   {
     using T = decay_t<decltype(arg)>;
 
-    if constexpr (is_same_v<T, bool*>)
+    if constexpr (is_same_v<T, bool>)
     {
       *arg = !*arg;
     }
     else
     {
-      *arg += increment ? 1: -1;
+      *arg += increment ? 1 : -1;
     }
-  }, _value.value());
+  }, m_value.value());
 
   trimValue();
 }

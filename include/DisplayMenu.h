@@ -1,4 +1,5 @@
-#pragma once
+#ifndef DISPLAYMENU_H
+#define DISPLAYMENU_H
 
 #include <GyverOLED.h>
 #include <vector>
@@ -11,6 +12,7 @@ class DisplayMenu
 {
 public:
   explicit DisplayMenu(GyverOLED<SSD1306_128x64> *oled);
+  virtual ~DisplayMenu() = default;
 
   void setup() const;
   void setMenuLoop(bool enable);
@@ -30,19 +32,19 @@ public:
   template <typename PTR_T>
   void addItem(const String &text, PTR_T value)
   {
-    _items.emplace_back(text, value);
+    m_items.emplace_back(text, value);
     addItem();
   }
   template <typename PTR_T, typename T>
   void addItem(const String &text, PTR_T value, T min)
   {
-    _items.emplace_back(text, value, min);
+    m_items.emplace_back(text, value, min);
     addItem();
   }
   template <typename PTR_T, typename T>
   void addItem(const String &text, PTR_T value, T min, T max)
   {
-    _items.emplace_back(text, value, min, max);
+    m_items.emplace_back(text, value, min, max);
     addItem();
   }
 
@@ -50,17 +52,22 @@ public:
 
   void repaint() const;
 
-private:
-  GyverOLED<SSD1306_128x64> *_oled;
-  vector<MenuItem> _items;
-  bool _menuLoop;
-  uint8_t _selectedIndex;
-  int8_t _scrollItemCount;
+protected:
+  virtual void paintSelectedItem() const;
+  virtual void paintUnselectedItem(uint8_t index) const;
+  virtual void addItem() const;
+  virtual void valuePrint(const MenuItem &item, uint8_t start) const;
 
-  void selectIndex() const;
-  void unselectIndex(uint8_t index) const;
+private:
+  GyverOLED<SSD1306_128x64> *m_oled;
+  vector<MenuItem> m_items;
+  bool m_menuLoop;
+  uint8_t m_selectedIndex;
+  int8_t m_scrollItemCount;
+
+
   void scrollUp();
   void scrollDown();
-  void addItem() const;
-  void valuePrint(const MenuItem &item, uint8_t start) const;
 };
+
+#endif // DISPLAYMENU_H

@@ -1,6 +1,6 @@
 {
   "name": "DisplayMenu",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "DisplayMenu is a library based on the GyverOLED library for easily creating menus for SSD1306 128x64 displays",
   "keywords": "menu, diplay, ssd1306",
   "repository":
@@ -20,5 +20,12 @@
     "gyverlibs/GyverOLED": "~1.6.4"
   },
   "frameworks": "*",
-  "platforms": "*"
+  "platforms": "*",
+  "build":
+  [
+    {
+      "build_flags": "-std=gnu++17",
+      "build_unflags": "-std=gnu++11"
+    }
+  ]
 }

@@ -1,60 +1,40 @@
-#pragma once
+#ifndef MENUITEM_H
+#define MENUITEM_H
 
-#include <variant>
 #include <optional>
+#include <variant>
+#include <type_traits>
 #include <WString.h>
-
-#define CHECK_TYPE_ASSERT static_assert( \
-        is_same_v<T, bool> || \
-        is_same_v<T, uint8_t> || \
-        is_same_v<T, int8_t> || \
-        is_same_v<T, uint16_t> || \
-        is_same_v<T, int16_t> || \
-        is_same_v<T, uint32_t> || \
-        is_same_v<T, int32_t> || \
-        is_same_v<T, float> || \
-        is_same_v<T, double>, \
-        "Unsupported type for value");
-
-#define CHECK_TYPE_ASSERT_PTR static_assert( \
-        is_same_v<PTR_T, bool*> || \
-        is_same_v<PTR_T, uint8_t*> || \
-        is_same_v<PTR_T, int8_t*> || \
-        is_same_v<PTR_T, uint16_t*> || \
-        is_same_v<PTR_T, int16_t*> || \
-        is_same_v<PTR_T, uint32_t*> || \
-        is_same_v<PTR_T, int32_t*> || \
-        is_same_v<PTR_T, float*> || \
-        is_same_v<PTR_T, double*>, \
-        "Unsupported type point for value");
 
 using namespace std;
 
 class MenuItem
 {
 public:
-  using ValueType = variant<bool, uint8_t, int8_t, uint16_t, int16_t, uint32_t, int32_t, float, double>;
-  using ValuePtrType = variant<bool*, uint8_t*, int8_t*, uint16_t*, int16_t*, uint32_t*, int32_t*, float*, double*>;
+  using ValueType = variant<bool, uint8_t, int8_t, uint16_t, int16_t, uint32_t, int32_t, uint64_t, int64_t,
+                    float, double>;
+  using ValuePtrType = variant<bool*, uint8_t*, int8_t*, uint16_t*, int16_t*, uint32_t*, int32_t*, uint64_t*, int64_t*,
+                       float*, double*>;
 
   explicit MenuItem(String text);
   template <typename PTR_T>
-  MenuItem(String  text, PTR_T value) : _text(std::move(text)), _value(optional<ValuePtrType>(value))
+  MenuItem(String  text, PTR_T value) : m_text(std::move(text)), m_value(optional<PTR_T>(value))
   {
-    CHECK_TYPE_ASSERT_PTR
+    checkType(value);
   }
   template <typename PTR_T, typename T>
-  MenuItem(String  text, PTR_T value, T min) : _text(std::move(text)), _value(optional<ValuePtrType>(value)),
-  _valueMin(optional<ValueType>(min))
+  MenuItem(String  text, PTR_T value, T min) : m_text(std::move(text)), m_value(optional<PTR_T>(value)),
+  m_valueMin(optional<T>(min))
   {
-    CHECK_TYPE_ASSERT_PTR
-    CHECK_TYPE_ASSERT
+    checkType(value);
+    checkType(min);
   }
   template <typename PTR_T, typename T>
-  MenuItem(String  text, PTR_T value, T min, T max) : _text(std::move(text)), _value(optional<ValuePtrType>(value)),
-  _valueMin(optional<ValueType>(min)), _valueMax(optional<ValueType>(max))
+  MenuItem(String  text, PTR_T value, T min, T max) : m_text(std::move(text)), m_value(optional<PTR_T>(value)),
+  m_valueMin(optional<T>(min)), m_valueMax(optional<T>(max))
   {
-    CHECK_TYPE_ASSERT_PTR
-    CHECK_TYPE_ASSERT
+    checkType(value);
+    checkType(min);
   }
 
   [[nodiscard]] String getText() const;
@@ -72,11 +52,19 @@ public:
   void decrementValue();
 
 private:
-  String _text;
-  optional<ValuePtrType> _value;
-  optional<ValueType> _valueMin;
-  optional<ValueType> _valueMax;
+  String m_text;
+  optional<ValuePtrType> m_value;
+  optional<ValueType> m_valueMin;
+  optional<ValueType> m_valueMax;
 
   void trimValue() const;
   void modifyValue(bool increment);
+
+  template<typename T>
+  constexpr void checkType(T)
+  {
+    static_assert(numeric_limits<remove_pointer_t<T>>::is_bounded, "Unsupported type for value");
+  }
 };
+
+#endif // MENUITEM_H
