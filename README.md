@@ -1,4 +1,4 @@
-# DisplayMenu
+# DisplayMenu [![PlatformIO Registry](https://badges.registry.platformio.org/packages/koromelodev/library/DisplayMenu.svg)](https://registry.platformio.org/libraries/koromelodev/DisplayMenu)
 DisplayMenu is a library based on the GyverOLED library for easily creating menus for SSD1306 128x64 displays.
 
 ## Why don't you use GyverOLED MENU?
