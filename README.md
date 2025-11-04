@@ -12,9 +12,10 @@ GyverOLED MENU does not support dynamic creation and deletion of menu items, unl
 - [x] Scroll down/up
 - [x] Display of item values
 - [x] Changes to item values
+- [x] Correct display of elements that do not fit horizontally on the screen
 
 ## It is planned to do
-- [ ] Correct display of elements that do not fit horizontally on the screen
+- [ ] Scale support
 
 ## Documentation
 ### Initialization

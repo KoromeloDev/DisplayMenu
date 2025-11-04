@@ -3,8 +3,10 @@
 
 #include <GyverOLED.h>
 #include <vector>
+#include <thread>
 
 #include "MenuItem.h"
+#include "ThreadSafeOLED.h"
 
 using namespace std;
 
@@ -16,12 +18,13 @@ public:
 
   void setup() const;
   void setMenuLoop(bool enable);
+  void setScale(uint8_t scale);
 
   void selectNext();
   void selectPrevious();
 
-  void incrementValue() const;
-  void decrementValue() const;
+  void incrementValue();
+  void decrementValue();
 
   [[nodiscard]] MenuItem getItem(uint8_t index);
   [[nodiscard]] MenuItem getSelectedItem() const;
@@ -50,24 +53,26 @@ public:
 
   void deleteItem(uint8_t index);
 
-  void repaint() const;
+  virtual void repaint();
 
 protected:
-  virtual void paintSelectedItem() const;
-  virtual void paintUnselectedItem(uint8_t index) const;
-  virtual void addItem() const;
+  virtual void paintSelectedItem(String text = "");
+  virtual void paintUnselectedItem(uint8_t index);
+  virtual void addItem();
   virtual void valuePrint(const MenuItem &item, uint8_t start) const;
+  virtual void scrollUp();
+  virtual void scrollDown();
 
 private:
-  GyverOLED<SSD1306_128x64> *m_oled;
+  mutable ThreadSafeOLED m_safeOled;
   vector<MenuItem> m_items;
   bool m_menuLoop;
   uint8_t m_selectedIndex;
   int8_t m_scrollItemCount;
+  uint8_t m_scale;
 
-
-  void scrollUp();
-  void scrollDown();
+  [[nodiscard]] String getAvaliableString(const MenuItem &item, bool selected, uint16_t charIndex = 0) const;
+  void scrollRight(uint8_t index, uint16_t charIndex);
 };
 
 #endif // DISPLAYMENU_H

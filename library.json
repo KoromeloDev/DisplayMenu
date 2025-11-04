@@ -1,29 +1,29 @@
 {
-  "name": "DisplayMenu",
-  "version": "1.1.2",
-  "description": "DisplayMenu is a library based on the GyverOLED library for easily creating menus for SSD1306 128x64 displays",
-  "keywords": "menu, diplay, ssd1306",
-  "repository":
-  {
-    "type": "git",
-    "url": "https://github.com/KoromeloDev/DisplayMenu.git"
-  },
-  "authors":
-  [
-    {
-      "name": "KoromeloDev",
-      "maintainer": true
+    "name": "DisplayMenu",
+    "version": "1.1.3",
+    "description": "DisplayMenu is a library based on the GyverOLED library for easily creating menus for SSD1306 128x64 displays",
+    "keywords": "menu, diplay, ssd1306",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/KoromeloDev/DisplayMenu.git"
+    },
+    "authors": [
+        {
+            "name": "KoromeloDev",
+            "maintainer": true
+        }
+    ],
+    "license": "GPL-3.0-or-later",
+    "dependencies": {
+        "gyverlibs/GyverOLED": "~1.6.4"
+    },
+    "frameworks": [
+        "espidf",
+        "arduino"
+    ],
+    "platforms": "*",
+    "build": {
+        "flags": "-std=gnu++17",
+        "unflags": "-std=gnu++11"
     }
-  ],
-  "license": "GPL-3.0-or-later",
-  "dependencies": {
-    "gyverlibs/GyverOLED": "~1.6.4"
-  },
-  "frameworks": "*",
-  "platforms": "*",
-  "build":
-  {
-    "flags": ["-std=gnu++17"],
-    "unflags": ["-std=gnu++11"]
-  }
 }
