@@ -17,6 +17,12 @@ void setup()
   menu.addItem("Normal");
   menu.addItem("Horizontal out------------>");
   menu.addItem("Horizontal out + value------------>", &testBoolValue);
+  menu.addItem("2x out");
+  menu.addItem("2x out");
+  menu.addItem("2x out");
+  menu.addItem("1x out");
+
+  // menu.setScale(4);
 
   menu.selectNext();
   menu.selectNext();
@@ -26,6 +32,6 @@ void setup()
 
 void loop()
 {
-  // delay(3000);
-  // menu.selectNext();
+  delay(7000);
+  menu.selectNext();
 }

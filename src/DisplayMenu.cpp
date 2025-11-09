@@ -1,3 +1,5 @@
+#include <thread>
+
 #include "DisplayMenu.h"
 
 #define SELECTED_HEIGHT 10
@@ -42,17 +44,20 @@ void DisplayMenu::setScale(const uint8_t scale)
   }
   else
   {
-    m_scale = 1;
+    return;
   }
 
-  m_safeOled->acquire()->setScale(m_scale);
+  auto oled = m_safeOled->acquire();
+  oled->setScale(m_scale);
+  oled.unlock();
+  repaint();
 }
 
 void DisplayMenu::selectNext()
 {
   if (m_items.empty()) return;
 
-  if ((m_selectedIndex + 1) * SELECTED_HEIGHT + SELECTED_HEIGHT > DISPLAY_HEIGHT)
+  if (((m_selectedIndex + 1) * SELECTED_HEIGHT + SELECTED_HEIGHT) * m_scale > DISPLAY_HEIGHT)
   {
     scrollDown();
     return;
@@ -170,9 +175,11 @@ void DisplayMenu::deleteItem(const uint8_t index)
 
 void DisplayMenu::repaint()
 {
-  const uint8_t sizeToPrint = m_items.size() >= 6 ? 6 : m_items.size();
-  const auto oled = m_safeOled->acquire();
+  const uint8_t maxItems = DISPLAY_HEIGHT / (SELECTED_HEIGHT *  m_scale);
+  const uint8_t sizeToPrint = m_items.size() >= maxItems ? maxItems : m_items.size();
+  auto oled = m_safeOled->acquire();
   oled->clear();
+  oled.unlock();
 
   for (uint8_t i = 0; i < sizeToPrint; ++i)
   {
@@ -180,6 +187,7 @@ void DisplayMenu::repaint()
     else paintUnselectedItem(i);
   }
 
+  oled.lock();
   oled->update();
 }
 
@@ -187,33 +195,34 @@ void DisplayMenu::paintSelectedItem(String text)
 {
   if (m_items.empty()) return;
 
+  const bool textIsEmpty = text.isEmpty();
   const uint8_t start = m_selectedIndex * SELECTED_HEIGHT;
   const uint8_t end = start + SELECTED_HEIGHT - 2 >= DISPLAY_HEIGHT ? DISPLAY_HEIGHT : start + SELECTED_HEIGHT - 2;
   auto oled = m_safeOled->acquire();
-  oled->rect(0, start, DISPLAY_WIDTH, end, OLED_FILL);
-  oled->setCursorXY(SELECTED_LEFT_OFFSET, start + 1);
+  oled->rect(0, start * m_scale, DISPLAY_WIDTH, end * m_scale, OLED_FILL);
+  oled->setCursorXY(SELECTED_LEFT_OFFSET, (start + 1) * m_scale);
   oled->textMode(BUF_SUBTRACT);
+  oled->setScale(m_scale);
 
-  if (text.isEmpty())
+  if (textIsEmpty)
   {
     text = getAvaliableString(getSelectedItem(), true);
-    oled->setScale(m_scale);
+  }
+
+  if (!text.isEmpty())
+  {
     oled->print(text);
-    oled.unlock();
-    valuePrint(getSelectedItem(), start + 1);
-    oled.lock();
-    oled->update();
+  }
+
+  oled.unlock();
+  valuePrint(getSelectedItem(), start + 1);
+  oled.lock();
+  oled->update();
+
+  if (textIsEmpty)
+  {
     thread t(&DisplayMenu::scrollRight, this, getSelectedIndex(), 0);
     t.detach();
-  }
-  else
-  {
-    oled->setScale(m_scale);
-    oled->print(text);
-    oled.unlock();
-    valuePrint(getSelectedItem(), start + 1);
-    oled.lock();
-    oled->update();
   }
 }
 
@@ -223,8 +232,8 @@ void DisplayMenu::paintUnselectedItem(const uint8_t index)
   const uint8_t end = start + SELECTED_HEIGHT - 1 >= DISPLAY_HEIGHT ? DISPLAY_HEIGHT : start + SELECTED_HEIGHT - 1;
   const MenuItem item = m_items.at(index + m_scrollItemCount);
   auto oled = m_safeOled->acquire();
-  oled->clear(0, start, DISPLAY_WIDTH, end);
-  oled->setCursorXY(LEFT_OFFSET, start);
+  oled->clear(0, start * m_scale, DISPLAY_WIDTH, end * m_scale);
+  oled->setCursorXY(LEFT_OFFSET, start * m_scale);
   oled->textMode(BUF_ADD);
   const String text = getAvaliableString(item, false);
   oled->setScale(m_scale);
@@ -252,8 +261,8 @@ void DisplayMenu::valuePrint(const MenuItem &item, const uint8_t start) const
   if (!item.hasValue()) return;
   const String valueString = item.getValueAsString();
   const auto oled = m_safeOled->acquire();
-  oled->setCursorXY(static_cast<uint8_t>(DISPLAY_WIDTH - VALUE_RIGHT_OFFSET - valueString.length() * CHAR_WIDTH),
-                      start);
+  oled->setCursorXY(static_cast<uint8_t>(DISPLAY_WIDTH - VALUE_RIGHT_OFFSET - valueString.length() * CHAR_WIDTH * m_scale),
+                      start * m_scale);
   oled->setScale(m_scale);
   oled->print(valueString);
 }
@@ -267,7 +276,7 @@ void DisplayMenu::scrollUp()
   {
     if (nextIndex == -1)
     {
-      m_selectedIndex = 5;                             // The last visible index
+      m_selectedIndex = DISPLAY_HEIGHT / (SELECTED_HEIGHT *  m_scale) - 1;          // The last visible index
       m_scrollItemCount = static_cast<int8_t>(m_items.size() - 1 - m_selectedIndex);
     }
     else
@@ -334,9 +343,10 @@ String DisplayMenu::getAvaliableString(const MenuItem &item, const bool selected
 {
   const String text = item.getText();
   String result;
-  uint8_t avaliableWidth = item.hasValue() ? DISPLAY_WIDTH - VALUE_RIGHT_OFFSET - VALUE_LEFT_OFFSET -
-                           item.getValueAsString().length() * CHAR_WIDTH : DISPLAY_WIDTH;
+  int8_t avaliableWidth = item.hasValue() ? DISPLAY_WIDTH - VALUE_RIGHT_OFFSET - VALUE_LEFT_OFFSET -
+                           item.getValueAsString().length() * CHAR_WIDTH * m_scale : DISPLAY_WIDTH;
   if (selected) avaliableWidth -= SELECTED_LEFT_OFFSET;
+  if (avaliableWidth < CHAR_WIDTH * m_scale) return "";
 
   if (text.length() * CHAR_WIDTH * m_scale > avaliableWidth)
   {
@@ -362,7 +372,7 @@ void DisplayMenu::scrollRight(const uint8_t index, uint16_t charIndex)
   const MenuItem item = getItem(index);
   if (charIndex + 1 == item.getText().length()) charIndex = 0;
   const String result = getAvaliableString(item, true, charIndex);
-  if (result == item.getText()) return;
+  if (result == item.getText() || result.isEmpty()) return;
   paintSelectedItem(result);
   this_thread::sleep_for(chrono::milliseconds(charIndex == 0 ? 1500 : 500));
   thread t(&DisplayMenu::scrollRight, this, index, charIndex + 1);

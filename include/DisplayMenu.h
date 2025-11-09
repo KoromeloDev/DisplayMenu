@@ -3,7 +3,6 @@
 
 #include <GyverOLED.h>
 #include <vector>
-#include <thread>
 
 #include "MenuItem.h"
 #include "ThreadSafeOLED.h"

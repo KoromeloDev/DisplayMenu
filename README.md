@@ -13,17 +13,32 @@ GyverOLED MENU does not support dynamic creation and deletion of menu items, unl
 - [x] Display of item values
 - [x] Changes to item values
 - [x] Correct display of elements that do not fit horizontally on the screen
-
-## It is planned to do
-- [ ] Scale support
+- [x] Thread safe display managment
+- [x] Scale support
 
 ## Documentation
+### Preparation
+
+If PlatformIO has not set the correct version of C++ for you (this can be understood from the pile of errors when including DisplayMenu.h), then do it manually in the platformio.ini file:
+
+``` ini
+build_flags =
+    -std=gnu++17
+build_unflags =
+    -std=gnu++98
+    -std=gnu++11
+    -std=gnu++14
+```
+
+You can set a version higher than 17 of the standard if you want.
+
 ### Initialization
 ```cpp
 #include <DisplayMenu.h>
 
-GyverOLED<SSD1306_128x64> oled;
-DisplayMenu menu(&oled);
+// GyverOLED<SSD1306_128x64> oled;    Do not use display management directly through this library!!!
+ThreadSafeOLED safeOled;           // Use this wrapper over GyverOLED for thread-safe display output
+DisplayMenu menu(&safeOled);
 
 void setup()
 {
@@ -40,7 +55,8 @@ void deleteItem(uint8_t index);                   // Removing an element by inde
 
 void selectNext();                                // Navigates to the next menu index
 void selectPrevious();                            // Navigates to the зrevious menu index
-void setMenuLoop(bool enable);                    // If enabled (default): when selectNext() is called on the last element, it switches to the first element, and in reverse when selectPrevious() is called.
+constexpr void setMenuLoop(bool enable);                    // If enabled (default): when selectNext() is called on the last element, it switches to the first element, and in reverse when selectPrevious() is called.
+void setScale(uint8_t scale);                     // Sets the display scale
 
 void incrementValue() const;                      // Increases 1 to the current value. If the value is bool, it inverts it.
 void decrementValue() const;                      // Decreases 1 to the current value. If the value is bool, it inverts it.
