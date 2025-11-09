@@ -4,8 +4,9 @@
 
 #define DELAY_TIME 2500
 
-GyverOLED<SSD1306_128x64> oled;
-DisplayMenu menu(&oled);
+// GyverOLED<SSD1306_128x64> oled;    Do not use display management directly through this library!!!
+ThreadSafeOLED safeOled;           // Use this wrapper over GyverOLED for thread-safe display output
+DisplayMenu menu(&safeOled);
 
 bool testBoolValue = false;
 uint8_t testUintValue = 0;

@@ -1,6 +1,10 @@
 #ifndef MENUITEM_H
 #define MENUITEM_H
 
+#if !defined(__cplusplus) || __cplusplus < 201703L
+#error "The C++17 or later standard is required for compilation."
+#endif
+
 #include <optional>
 #include <variant>
 #include <type_traits>

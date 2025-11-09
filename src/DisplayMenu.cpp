@@ -12,7 +12,7 @@
 #define DISPLAY_WIDTH 127
 #define DISPLAY_HEIGHT 63
 
-DisplayMenu::DisplayMenu(GyverOLED<SSD1306_128x64> *oled) : m_safeOled(oled)
+DisplayMenu::DisplayMenu(ThreadSafeOLED *oled) : m_safeOled(oled)
 {
   m_selectedIndex = 0;
   m_scrollItemCount = 0;
@@ -22,14 +22,14 @@ DisplayMenu::DisplayMenu(GyverOLED<SSD1306_128x64> *oled) : m_safeOled(oled)
 
 void DisplayMenu::setup() const
 {
-  auto oled = m_safeOled.acquire();
+  const auto oled = m_safeOled->acquire();
   oled->init();
   Wire.setClock(800000L);
   oled->clear();
   oled->update();
 }
 
-void DisplayMenu::setMenuLoop(const bool enable)
+constexpr void DisplayMenu::setMenuLoop(const bool enable)
 {
   m_menuLoop = enable;
 }
@@ -45,7 +45,7 @@ void DisplayMenu::setScale(const uint8_t scale)
     m_scale = 1;
   }
 
-  m_safeOled.acquire()->setScale(m_scale);
+  m_safeOled->acquire()->setScale(m_scale);
 }
 
 void DisplayMenu::selectNext()
@@ -72,8 +72,8 @@ void DisplayMenu::selectNext()
     ++m_selectedIndex;
   }
 
-  paintSelectedItem();
-  m_safeOled.acquire()->update();
+  paintSelectedItem("");
+  m_safeOled->acquire()->update();
 }
 
 void DisplayMenu::selectPrevious()
@@ -100,24 +100,24 @@ void DisplayMenu::selectPrevious()
     --m_selectedIndex;
   }
 
-  paintSelectedItem();
-  m_safeOled.acquire()->update();
+  paintSelectedItem("");
+  m_safeOled->acquire()->update();
 }
 
 void DisplayMenu::incrementValue()
 {
   if (m_items.empty()) return;
   getSelectedItem().incrementValue();
-  paintSelectedItem();
-  m_safeOled.acquire()->update();
+  paintSelectedItem("");
+  m_safeOled->acquire()->update();
 }
 
 void DisplayMenu::decrementValue()
 {
   if (m_items.empty()) return;
   getSelectedItem().decrementValue();
-  paintSelectedItem();
-  m_safeOled.acquire()->update();
+  paintSelectedItem("");
+  m_safeOled->acquire()->update();
 }
 
 MenuItem DisplayMenu::getItem(const uint8_t index)
@@ -171,12 +171,12 @@ void DisplayMenu::deleteItem(const uint8_t index)
 void DisplayMenu::repaint()
 {
   const uint8_t sizeToPrint = m_items.size() >= 6 ? 6 : m_items.size();
-  auto oled = m_safeOled.acquire();
+  const auto oled = m_safeOled->acquire();
   oled->clear();
 
   for (uint8_t i = 0; i < sizeToPrint; ++i)
   {
-    if (i == m_selectedIndex) paintSelectedItem();
+    if (i == m_selectedIndex) paintSelectedItem("");
     else paintUnselectedItem(i);
   }
 
@@ -189,7 +189,7 @@ void DisplayMenu::paintSelectedItem(String text)
 
   const uint8_t start = m_selectedIndex * SELECTED_HEIGHT;
   const uint8_t end = start + SELECTED_HEIGHT - 2 >= DISPLAY_HEIGHT ? DISPLAY_HEIGHT : start + SELECTED_HEIGHT - 2;
-  auto oled = m_safeOled.acquire();
+  auto oled = m_safeOled->acquire();
   oled->rect(0, start, DISPLAY_WIDTH, end, OLED_FILL);
   oled->setCursorXY(SELECTED_LEFT_OFFSET, start + 1);
   oled->textMode(BUF_SUBTRACT);
@@ -197,6 +197,7 @@ void DisplayMenu::paintSelectedItem(String text)
   if (text.isEmpty())
   {
     text = getAvaliableString(getSelectedItem(), true);
+    oled->setScale(m_scale);
     oled->print(text);
     oled.unlock();
     valuePrint(getSelectedItem(), start + 1);
@@ -207,6 +208,7 @@ void DisplayMenu::paintSelectedItem(String text)
   }
   else
   {
+    oled->setScale(m_scale);
     oled->print(text);
     oled.unlock();
     valuePrint(getSelectedItem(), start + 1);
@@ -220,11 +222,12 @@ void DisplayMenu::paintUnselectedItem(const uint8_t index)
   const uint8_t start = index * SELECTED_HEIGHT;
   const uint8_t end = start + SELECTED_HEIGHT - 1 >= DISPLAY_HEIGHT ? DISPLAY_HEIGHT : start + SELECTED_HEIGHT - 1;
   const MenuItem item = m_items.at(index + m_scrollItemCount);
-  auto oled = m_safeOled.acquire();
+  auto oled = m_safeOled->acquire();
   oled->clear(0, start, DISPLAY_WIDTH, end);
   oled->setCursorXY(LEFT_OFFSET, start);
   oled->textMode(BUF_ADD);
   const String text = getAvaliableString(item, false);
+  oled->setScale(m_scale);
   oled->print(text);
   oled.unlock();
   valuePrint(item, start);
@@ -234,23 +237,24 @@ void DisplayMenu::addItem()
 {
   if (const uint8_t index = m_items.size() - 1; index == m_selectedIndex)
   {
-    paintSelectedItem();
+    paintSelectedItem("");
   }
   else
   {
     paintUnselectedItem(index);
   }
 
-  m_safeOled.acquire()->update();
+  m_safeOled->acquire()->update();
 }
 
 void DisplayMenu::valuePrint(const MenuItem &item, const uint8_t start) const
 {
   if (!item.hasValue()) return;
   const String valueString = item.getValueAsString();
-  auto oled = m_safeOled.acquire();
+  const auto oled = m_safeOled->acquire();
   oled->setCursorXY(static_cast<uint8_t>(DISPLAY_WIDTH - VALUE_RIGHT_OFFSET - valueString.length() * CHAR_WIDTH),
                       start);
+  oled->setScale(m_scale);
   oled->print(valueString);
 }
 
@@ -304,6 +308,26 @@ void DisplayMenu::scrollDown()
   }
 
   repaint();
+}
+
+ThreadSafeOLED *DisplayMenu::getSafeOled() const
+{
+  return m_safeOled;
+}
+
+vector<MenuItem> DisplayMenu::getItems() const
+{
+  return m_items;
+}
+
+bool DisplayMenu::getMenuLoop() const
+{
+  return m_menuLoop;
+}
+
+uint8_t DisplayMenu::getScale() const
+{
+  return m_scale;
 }
 
 String DisplayMenu::getAvaliableString(const MenuItem &item, const bool selected, const uint16_t charIndex) const

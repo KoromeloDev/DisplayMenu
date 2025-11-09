@@ -24,13 +24,14 @@ public:
     std::unique_lock<std::mutex> m_lock;
   };
 
-  explicit ThreadSafeOLED(GyverOLED<SSD1306_128x64>* oled);
+  ThreadSafeOLED();
+  ~ThreadSafeOLED();
 
   Lock acquire();
 
 private:
   friend class Lock;
-  GyverOLED<SSD1306_128x64>* m_oled;
+  GyverOLED<SSD1306_128x64> *m_oled;
   std::mutex mutex;
 };
 

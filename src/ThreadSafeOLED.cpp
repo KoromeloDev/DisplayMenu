@@ -25,9 +25,15 @@ void ThreadSafeOLED::Lock::unlock()
   m_lock.unlock();
 }
 
-ThreadSafeOLED::ThreadSafeOLED(GyverOLED<SSD1306_128x64> *oled): m_oled(oled)
+ThreadSafeOLED::ThreadSafeOLED()
 {
+  m_oled = new GyverOLED<SSD1306_128x64>();
+}
 
+ThreadSafeOLED::~ThreadSafeOLED()
+{
+  delete m_oled;
+  m_oled = nullptr;
 }
 
 ThreadSafeOLED::Lock ThreadSafeOLED::acquire()

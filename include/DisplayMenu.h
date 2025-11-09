@@ -13,11 +13,11 @@ using namespace std;
 class DisplayMenu
 {
 public:
-  explicit DisplayMenu(GyverOLED<SSD1306_128x64> *oled);
+  explicit DisplayMenu(ThreadSafeOLED *oled);
   virtual ~DisplayMenu() = default;
 
   void setup() const;
-  void setMenuLoop(bool enable);
+  constexpr void setMenuLoop(bool enable);
   void setScale(uint8_t scale);
 
   void selectNext();
@@ -56,15 +56,20 @@ public:
   virtual void repaint();
 
 protected:
-  virtual void paintSelectedItem(String text = "");
+  virtual void paintSelectedItem(String text);
   virtual void paintUnselectedItem(uint8_t index);
   virtual void addItem();
   virtual void valuePrint(const MenuItem &item, uint8_t start) const;
   virtual void scrollUp();
   virtual void scrollDown();
 
+  [[nodiscard]] ThreadSafeOLED *getSafeOled() const;
+  [[nodiscard]] vector<MenuItem> getItems() const;
+  [[nodiscard]] bool getMenuLoop() const;
+  [[nodiscard]] uint8_t getScale() const;
+
 private:
-  mutable ThreadSafeOLED m_safeOled;
+  ThreadSafeOLED *m_safeOled;
   vector<MenuItem> m_items;
   bool m_menuLoop;
   uint8_t m_selectedIndex;
