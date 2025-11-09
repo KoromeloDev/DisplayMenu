@@ -261,8 +261,8 @@ void DisplayMenu::valuePrint(const MenuItem &item, const uint8_t start) const
   if (!item.hasValue()) return;
   const String valueString = item.getValueAsString();
   const auto oled = m_safeOled->acquire();
-  oled->setCursorXY(static_cast<uint8_t>(DISPLAY_WIDTH - VALUE_RIGHT_OFFSET - valueString.length() * CHAR_WIDTH * m_scale),
-                      start * m_scale);
+  oled->setCursorXY(static_cast<uint8_t>(DISPLAY_WIDTH - VALUE_RIGHT_OFFSET - valueString.length() * CHAR_WIDTH *
+                    m_scale), start * m_scale);
   oled->setScale(m_scale);
   oled->print(valueString);
 }
@@ -339,23 +339,72 @@ uint8_t DisplayMenu::getScale() const
   return m_scale;
 }
 
+size_t DisplayMenu::getUtf8Length(const String &str)
+{
+  size_t len = 0;
+
+  for (size_t i = 0; i < str.length(); )
+  {
+    if (const uint8_t c = str[i]; c < 0x80) i += 1;           // ASCII character (1 byte)
+    else if ((c & 0xE0) == 0xC0) i += 2;                      // 2-byte character
+    else if ((c & 0xF0) == 0xE0) i += 3;                      // 3-byte character
+    else i += 1;                                              // Invalid UTF-8
+    len++;
+  }
+
+  return len;
+}
+
+String DisplayMenu::substringUtf8(const String &text, const size_t startCharIndex, const size_t endCharIndex)
+{
+  size_t startByteIndex = 0;
+  size_t charCount = 0;
+
+  while (charCount < startCharIndex && startByteIndex < text.length())
+  {
+    if (uint8_t c = text[startByteIndex]; c < 0x80) startByteIndex += 1;
+    else if ((c & 0xE0) == 0xC0) startByteIndex += 2;
+    else if ((c & 0xF0) == 0xE0) startByteIndex += 3;
+    else startByteIndex += 1;
+    charCount++;
+  }
+
+  size_t endByteIndex = 0;
+  charCount = 0;
+
+  while (charCount < endCharIndex && endByteIndex < text.length())
+  {
+    const uint8_t c = text[endByteIndex];
+    const size_t charSize =
+      c < 0x80 ? 1 :
+      (c & 0xE0) == 0xC0 ? 2 :
+      (c & 0xF0) == 0xE0 ? 3 : 1;
+
+    if (charCount + 1 > endCharIndex) break;
+    endByteIndex += charSize;
+    charCount++;
+  }
+
+  return text.substring(startByteIndex, endByteIndex);
+}
+
 String DisplayMenu::getAvaliableString(const MenuItem &item, const bool selected, const uint16_t charIndex) const
 {
   const String text = item.getText();
   String result;
   int8_t avaliableWidth = item.hasValue() ? DISPLAY_WIDTH - VALUE_RIGHT_OFFSET - VALUE_LEFT_OFFSET -
-                           item.getValueAsString().length() * CHAR_WIDTH * m_scale : DISPLAY_WIDTH;
+                          getUtf8Length(item.getValueAsString()) * CHAR_WIDTH * m_scale : DISPLAY_WIDTH;
   if (selected) avaliableWidth -= SELECTED_LEFT_OFFSET;
   if (avaliableWidth < CHAR_WIDTH * m_scale) return "";
 
-  if (text.length() * CHAR_WIDTH * m_scale > avaliableWidth)
+  if (getUtf8Length(text) * CHAR_WIDTH * m_scale > avaliableWidth)
   {
     const uint8_t avaliableChar = avaliableWidth / (CHAR_WIDTH * m_scale) + charIndex;
-    result = text.substring(charIndex, avaliableChar);
+    result = substringUtf8(text, charIndex, avaliableChar);
 
-    if (result.length() + charIndex >= text.length())
+    if (getUtf8Length(result) + charIndex >= getUtf8Length(text))
     {
-      result += text.substring(0, avaliableChar - result.length() - charIndex);
+      result += substringUtf8(text, 0, avaliableChar - getUtf8Length(result) - charIndex);
     }
   }
   else
@@ -370,7 +419,7 @@ void DisplayMenu::scrollRight(const uint8_t index, uint16_t charIndex)
 {
   if (index != getSelectedIndex()) return;
   const MenuItem item = getItem(index);
-  if (charIndex + 1 == item.getText().length()) charIndex = 0;
+  if (charIndex + 1 ==  getUtf8Length(item.getText())) charIndex = 0;
   const String result = getAvaliableString(item, true, charIndex);
   if (result == item.getText() || result.isEmpty()) return;
   paintSelectedItem(result);

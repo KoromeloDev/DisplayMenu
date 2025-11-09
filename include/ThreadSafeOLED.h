@@ -1,7 +1,11 @@
 #ifndef THREADSAFEOLED_H
 #define THREADSAFEOLED_H
+#include <Arduino.h>
 
+#define byte uint8_t
 #include <GyverOLED.h>
+#undef byte
+
 #include <mutex>
 
 using namespace std;

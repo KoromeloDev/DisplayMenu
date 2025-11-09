@@ -1,7 +1,6 @@
 #ifndef DISPLAYMENU_H
 #define DISPLAYMENU_H
 
-#include <GyverOLED.h>
 #include <vector>
 
 #include "MenuItem.h"
@@ -66,6 +65,8 @@ protected:
   [[nodiscard]] vector<MenuItem> getItems() const;
   [[nodiscard]] bool getMenuLoop() const;
   [[nodiscard]] uint8_t getScale() const;
+  static size_t getUtf8Length(const String &str);
+  static String substringUtf8(const String &text, size_t startCharIndex, size_t endCharIndex);
 
 private:
   ThreadSafeOLED *m_safeOled;
