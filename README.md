@@ -63,6 +63,7 @@ void decrementValue() const;                      // Decreases 1 to the current 
 
 void repaint() const;                             // Repaints the menu
 
+[[nodiscard]] uint8_t getSize() const;            // Returns the count of items in the menu
 [[nodiscard]] MenuItem getItem(uint8_t index);    // Returns an item by index
 [[nodiscard]] MenuItem getSelectedItem() const;   // Returns the current selected item
 [[nodiscard]] uint8_t  getSelectedIndex() const;  // Returns the current selected index

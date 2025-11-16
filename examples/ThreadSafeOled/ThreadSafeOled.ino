@@ -24,7 +24,7 @@ void setup()
 void treadSafePaint()
 {
   // We receive a copy and immediately block the use of the display from multiple places at once, for correct output
-  const auto oled = safeOled.acquire();
+  const auto oled = safeOled.get();
 
   oled->print("text");
   oled->update();
@@ -35,7 +35,7 @@ void treadSafePaint()
 void treadSafePaint2()
 {
   // We receive a copy and immediately block the use of the display from multiple places at once, for correct output
-  auto oled = safeOled.acquire();
+  auto oled = safeOled.get();
   oled->print("text1");
 
   // In this function, we again have a lock that will prevent the code from executing.

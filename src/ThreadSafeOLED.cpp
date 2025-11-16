@@ -36,7 +36,7 @@ ThreadSafeOLED::~ThreadSafeOLED()
   m_oled = nullptr;
 }
 
-ThreadSafeOLED::Lock ThreadSafeOLED::acquire()
+ThreadSafeOLED::Lock ThreadSafeOLED::get()
 {
   return Lock(*this);
 }

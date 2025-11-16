@@ -24,6 +24,7 @@ public:
   void incrementValue();
   void decrementValue();
 
+  [[nodiscard]] uint8_t getSize() const;
   [[nodiscard]] MenuItem getItem(uint8_t index);
   [[nodiscard]] MenuItem getSelectedItem() const;
   [[nodiscard]] uint8_t getSelectedIndex() const;

@@ -31,10 +31,9 @@ public:
   ThreadSafeOLED();
   ~ThreadSafeOLED();
 
-  Lock acquire();
+  Lock get();
 
 private:
-  friend class Lock;
   GyverOLED<SSD1306_128x64> *m_oled;
   std::mutex mutex;
 };
