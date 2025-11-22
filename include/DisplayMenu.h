@@ -51,6 +51,7 @@ public:
   }
 
   void deleteItem(uint8_t index);
+  void clearItems();
 
   virtual void repaint();
 

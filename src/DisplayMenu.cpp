@@ -178,6 +178,16 @@ void DisplayMenu::deleteItem(const uint8_t index)
   repaint();
 }
 
+void DisplayMenu::clearItems()
+{
+  m_items.clear();
+  m_selectedIndex = 0;
+  m_scrollItemCount = 0;
+  const auto oled = m_safeOled->get();
+  oled->clear();
+  oled->update();
+}
+
 void DisplayMenu::repaint()
 {
   const uint8_t maxItems = DISPLAY_HEIGHT / (SELECTED_HEIGHT *  m_scale);
@@ -428,7 +438,7 @@ String DisplayMenu::getAvaliableString(const MenuItem &item, const bool selected
 
 void DisplayMenu::scrollRight(const uint8_t index, uint16_t charIndex)
 {
-  if (index != getSelectedIndex()) return;
+  if (index != getSelectedIndex() || index >= getSize() || getSize()  == 0) return;
   const MenuItem item = getItem(index);
   if (charIndex + 1 ==  getUtf8Length(item.getText())) charIndex = 0;
   const String result = getAvaliableString(item, true, charIndex);

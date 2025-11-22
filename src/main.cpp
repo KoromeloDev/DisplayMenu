@@ -32,11 +32,21 @@ void setup()
 
 void loop()
 {
-  delay(1000);
-  menu.selectNext();
-  delay(1000);
-  menu.decrementValue();
-  delay(1000);
-  menu.incrementValue();
+  delay(3000);
+
+  const uint8_t sizeMenu = menu.getSize();
+
+  for (uint8_t i = 0; i < sizeMenu; ++i)
+  {
+    menu.deleteItem(0);
+  }
+
+  // menu.clearItems();
+
+  // menu.selectNext();
+  // delay(1000);
+  // menu.decrementValue();
+  // delay(1000);
+  // menu.incrementValue();
   // menu.selectPrevious();
 }

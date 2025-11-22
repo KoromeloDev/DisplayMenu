@@ -52,10 +52,13 @@ void setup()
 void addItem(const String &text)                  // Adding an element without value
 void addItem(const String &text, &value)          // Adding an element with a value, where “&value” is a reference to a value of type: bool, uint8_t, int8_t, uint16_t, int16_t, uint32_t, int32_t, uint64_t, int64_t, float, double
 void deleteItem(uint8_t index);                   // Removing an element by index
+void clearItems();                                // Removing all elements
 
 void selectNext();                                // Navigates to the next menu index
 void selectPrevious();                            // Navigates to the зrevious menu index
-constexpr void setMenuLoop(bool enable);                    // If enabled (default): when selectNext() is called on the last element, it switches to the first element, and in reverse when selectPrevious() is called.
+
+void setup() const;                               // Initial display setup. It is needed only at the start. If you have multiple menus, it doesn't make sense to call it for each menu.
+constexpr void setMenuLoop(bool enable);          // If enabled (default): when selectNext() is called on the last element, it switches to the first element, and in reverse when selectPrevious() is called.
 void setScale(uint8_t scale);                     // Sets the display scale
 
 void incrementValue() const;                      // Increases 1 to the current value. If the value is bool, it inverts it.
