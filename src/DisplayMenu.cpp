@@ -283,6 +283,12 @@ void DisplayMenu::scrollUp()
     {
       m_selectedIndex = DISPLAY_HEIGHT / (SELECTED_HEIGHT *  m_scale) - 1;          // The last visible index
       m_scrollItemCount = static_cast<int8_t>(getSize() - 1 - m_selectedIndex);
+
+      if (m_scrollItemCount < 0)
+      {
+        m_selectedIndex += m_scrollItemCount;
+        m_scrollItemCount = 0;
+      }
     }
     else
     {

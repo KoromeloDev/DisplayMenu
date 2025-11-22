@@ -32,6 +32,11 @@ void setup()
 
 void loop()
 {
-  // delay(7000);
-  // menu.selectNext();
+  delay(1000);
+  menu.selectNext();
+  delay(1000);
+  menu.decrementValue();
+  delay(1000);
+  menu.incrementValue();
+  // menu.selectPrevious();
 }
